@@ -1,0 +1,16 @@
+# Remplacer chaque @identifiant par le compte GitHub réel du membre.
+# Le propriétaire d'un dossier est relecteur obligatoire des pull requests qui le modifient.
+/Backend/order-service/        @youssef-github @yasser-github
+/Backend/catalog-service/      @eya-github @aziz-github
+/Backend/inventory-service/    @yasser-github @youssef-github
+/Backend/return-service/       @aziz-github @eya-github
+/Backend/ticketing-service/    @houssaine-github @benlakhal-github
+/Backend/fulfillment-service/  @benlakhal-github @houssaine-github
+/Backend/user-service/         @benlakhal-github @youssef-github
+/Backend/api-gateway/          @youssef-github
+/Backend/config-server/        @yasser-github
+/Backend/eureka-server/        @houssaine-github
+/Backend/infrastructure/       @benlakhal-github @aziz-github
+/docker-compose.yml            @houssaine-github
+/Frontend/                     @eya-github
+/Documentation/                @youssef-github

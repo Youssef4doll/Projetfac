@@ -1,0 +1,63 @@
+@startuml uc-front-office
+title DropWear — Cas d'utilisation (1/2) : front-office
+left to right direction
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam usecase {
+  BackgroundColor #F7F9FC
+  BorderColor #4A6FA5
+}
+
+actor "Visiteur" as V
+actor "Client" as C
+actor "Keycloak\n<<système>>" as KC
+C -left-|> V
+
+rectangle "Plateforme DropWear" {
+  package "Identité (user-service)" {
+    usecase "S'inscrire / se connecter" as UC01
+    usecase "Gérer profil et adresses" as UC02
+  }
+  package "Catalogue (catalog-service)" {
+    usecase "Parcourir et filtrer le catalogue\n(taille, coupe, coloris)" as UC04
+    usecase "Consulter une fiche produit\n(variantes, disponibilité)" as UC04b
+  }
+  package "Commande (order-service)" {
+    usecase "Gérer le panier" as UC06
+    usecase "Passer et valider une commande\n(paiement à la livraison)" as UC07
+    usecase "Suivre / annuler une commande" as UC08
+  }
+  package "Stock (inventory-service)" {
+    usecase "Vérifier et réserver le stock" as UC10
+  }
+  package "Retours & échanges (return-service)" {
+    usecase "Demander un retour / échange" as UC13
+    usecase "Vérifier l'éligibilité (14 jours)" as UC14
+    usecase "Télécharger l'étiquette de retour" as UC13b
+  }
+  package "Support (ticketing-service)" {
+    usecase "Ouvrir un ticket" as UC17
+    usecase "Échanger des messages\n(temps réel)" as UC18
+  }
+  package "Facturation (fulfillment-service)" {
+    usecase "Consulter / télécharger\nses factures" as UC22
+  }
+}
+
+V --> UC01
+V --> UC04
+V --> UC04b
+C --> UC02
+C --> UC06
+C --> UC07
+C --> UC08
+C --> UC13
+C --> UC13b
+C --> UC17
+C --> UC18
+C --> UC22
+
+UC07 ..> UC10 : <<include>>
+UC13 ..> UC14 : <<include>>
+UC01 --> KC
+@enduml

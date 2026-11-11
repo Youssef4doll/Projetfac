@@ -1,0 +1,45 @@
+@startuml context-map
+title DropWear — Carte des contextes bornés
+skinparam shadowing false
+skinparam componentStyle rectangle
+skinparam rectangle {
+  RoundCorner 12
+}
+skinparam ArrowFontSize 11
+
+rectangle "Identité & accès\n<<générique>>\n**user-service**" as ID #EDE7F6
+rectangle "Catalogue\n<<support>>\n**catalog-service**" as CAT #E3F2FD
+rectangle "Prise de commande\n<<cœur>>\n**order-service**" as ORD #FFEBEE
+rectangle "Stock\n<<cœur>>\n**inventory-service**" as INV #FFEBEE
+rectangle "Après-vente\n<<cœur>>\n**return-service**" as RET #FFEBEE
+rectangle "Relation client\n<<support>>\n**ticketing-service**" as TCK #E8F5E9
+rectangle "Logistique & facturation\n<<support>>\n**fulfillment-service**" as FUL #FFF8E1
+rectangle "Keycloak\n<<IdP externe>>" as KC #F5F5F5
+
+' --- synchrones (aval -> amont)
+ORD --> CAT : S1 variante / prix
+ORD --> INV : S2 réservation
+RET --> ORD : S3 commande livrée ?
+RET --> INV : S4 réservation échange
+TCK --> ORD : S5 contexte commande
+TCK --> ID : S6 contact client
+ID --> KC : S7 Admin API
+
+' --- asynchrones
+CAT ..> INV : E1 VarianteCreeeEvent
+ORD ..> INV : E2 CommandeValidee / E3 Annulee
+ORD ..> FUL : E2 / E3
+INV ..> CAT : E4 StockFaible / E5 Reapprovisionne
+FUL ..> ORD : E6 Expediee / E7 Livree
+FUL ..> TCK : E8 LivraisonRetardeeEvent
+RET ..> TCK : E9 RetourApprouveEvent
+RET ..> INV : E10 RetourRecuEvent
+RET ..> FUL : E10
+FUL ..> RET : E11 RetourFinaliseEvent
+
+legend right
+  Flèche pleine : appel synchrone OpenFeign (appelant = aval)
+  Flèche pointillée : événement Kafka (producteur → consommateur)
+  Rouge : cœur de métier · Bleu/vert/jaune : support · Violet : générique
+endlegend
+@enduml

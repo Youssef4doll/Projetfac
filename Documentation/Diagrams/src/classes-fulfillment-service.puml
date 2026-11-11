@@ -1,0 +1,143 @@
+@startuml classes-fulfillment-service
+!include _style.iuml
+title fulfillment-service (Fulfillment & Billing) — PostgreSQL fulfillment_db
+
+package "logistics (logistique)" {
+  class Shipment <<Entity>> {
+    - id : UUID
+    - orderId : UUID
+    - orderNumber : String
+    - customerId : String
+    - supplierId : UUID
+    - rmaId : UUID [0..1]
+    - type : ShipmentType
+    - status : ShipmentStatus
+    - carrier : String
+    - trackingNumber : String
+    - labelUrl : String
+    - estimatedDeliveryDate : LocalDate
+    - shippedAt : Instant
+    - deliveredAt : Instant
+    - createdAt : Instant
+  }
+  class ShipmentItem <<Entity>> {
+    - id : UUID
+    - sku : String
+    - productName : String
+    - quantity : int
+  }
+  class TrackingEvent <<Entity>> {
+    - id : UUID
+    - status : ShipmentStatus
+    - location : String
+    - description : String
+    - occurredAt : Instant
+  }
+  class ShippingAddress <<Embeddable>> {
+    - fullName : String
+    - street : String
+    - city : String
+    - postalCode : String
+    - governorate : String
+    - country : String
+    - phone : String
+  }
+  enum ShipmentType {
+    COMMANDE
+    REMPLACEMENT_ECHANGE
+  }
+  enum ShipmentStatus {
+    A_PREPARER
+    TRANSMISE_FOURNISSEUR
+    EXPEDIEE
+    EN_TRANSIT
+    LIVREE
+    ECHEC_LIVRAISON
+    ANNULEE
+  }
+}
+package "billing (facturation)" {
+  class Invoice <<Entity>> {
+    - id : UUID
+    - invoiceNumber : String {unique}
+    - orderId : UUID
+    - customerId : String
+    - type : InvoiceType
+    - status : InvoiceStatus
+    - issueDate : LocalDate
+    - subtotal : BigDecimal
+    - taxRate : BigDecimal
+    - taxAmount : BigDecimal
+    - totalAmount : BigDecimal
+    - currency : String
+    - pdfUrl : String
+    - relatedInvoiceId : UUID [0..1]
+  }
+  class InvoiceLine <<Entity>> {
+    - id : UUID
+    - sku : String
+    - description : String
+    - quantity : int
+    - unitPrice : BigDecimal
+    - lineTotal : BigDecimal
+  }
+  class Payment <<Entity>> {
+    - id : UUID
+    - orderId : UUID
+    - method : PaymentMethod
+    - status : PaymentStatus
+    - amount : BigDecimal
+    - currency : String
+    - transactionRef : String
+    - collectedBy : String
+    - paidAt : Instant [0..1]
+    - createdAt : Instant
+  }
+  class Refund <<Entity>> {
+    - id : UUID
+    - rmaId : UUID
+    - amount : BigDecimal
+    - status : RefundStatus
+    - processedAt : Instant [0..1]
+  }
+  enum InvoiceType {
+    FACTURE
+    AVOIR
+  }
+  enum InvoiceStatus {
+    EMISE
+    PAYEE
+    ANNULEE
+  }
+  enum PaymentMethod {
+    PAIEMENT_A_LA_LIVRAISON
+    CARTE
+  }
+  enum PaymentStatus {
+    EN_ATTENTE
+    PAYE
+    ECHOUE
+    REMBOURSE
+  }
+  enum RefundStatus {
+    DEMANDE
+    EFFECTUE
+    ECHOUE
+  }
+}
+Shipment "1" *-- "1..*" ShipmentItem : items >
+Shipment "1" *-- "0..*" TrackingEvent : trackingEvents >
+Shipment "1" *-- "1" ShippingAddress
+Shipment ..> ShipmentType
+Shipment ..> ShipmentStatus
+Invoice "1" *-- "1..*" InvoiceLine : lines >
+Payment "0..*" --> "1" Invoice : invoice >
+Refund "0..*" --> "1" Payment : payment >
+Invoice "0..1" --> "0..1" Invoice : avoir de >
+Invoice ..> InvoiceType
+Invoice ..> InvoiceStatus
+Payment ..> PaymentMethod
+Payment ..> PaymentStatus
+Refund ..> RefundStatus
+note "Les deux packages partagent seulement orderId :\naucune relation JPA entre logistique et facturation\n(extractibles en deux services)." as N1
+@enduml

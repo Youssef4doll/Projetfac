@@ -1,0 +1,107 @@
+@startuml classes-order-service
+!include _style.iuml
+title order-service — PostgreSQL order_db
+
+class Cart <<Entity>> {
+  - id : UUID
+  - customerId : String
+  - status : CartStatus
+  - createdAt : Instant
+  - updatedAt : Instant
+}
+class CartItem <<Entity>> {
+  - id : UUID
+  - sku : String
+  - productId : String
+  - productName : String
+  - size : String
+  - color : String
+  - supplierId : UUID
+  - unitPrice : BigDecimal
+  - quantity : int
+}
+class Order <<Entity orders>> {
+  - id : UUID
+  - orderNumber : String {unique}
+  - customerId : String
+  - status : OrderStatus
+  - paymentMethod : PaymentMethod
+  - subtotal : BigDecimal
+  - shippingFee : BigDecimal
+  - totalAmount : BigDecimal
+  - currency : String
+  - reservationId : UUID [0..1]
+  - createdAt : Instant
+  - confirmedAt : Instant
+  - shippedAt : Instant
+  - deliveredAt : Instant
+  - cancelledAt : Instant
+  - version : long
+}
+class OrderLine <<Entity>> {
+  - id : UUID
+  - sku : String
+  - productId : String
+  - productName : String
+  - size : String
+  - color : String
+  - supplierId : UUID
+  - unitPrice : BigDecimal
+  - quantity : int
+  - lineTotal : BigDecimal
+}
+class ShippingAddress <<Embeddable>> {
+  - fullName : String
+  - street : String
+  - city : String
+  - postalCode : String
+  - governorate : String
+  - country : String
+  - phone : String
+}
+class OrderStatusHistory <<Entity>> {
+  - id : UUID
+  - fromStatus : OrderStatus
+  - toStatus : OrderStatus
+  - changedAt : Instant
+  - reason : String
+}
+class OutboxEvent <<Entity>> {
+  - id : UUID
+  - aggregateId : String
+  - eventType : String
+  - topic : String
+  - payload : jsonb
+  - createdAt : Instant
+  - publishedAt : Instant [0..1]
+}
+enum OrderStatus {
+  EN_ATTENTE
+  CONFIRMEE
+  EXPEDIEE
+  LIVREE
+  ANNULEE
+}
+enum PaymentMethod {
+  PAIEMENT_A_LA_LIVRAISON
+  CARTE
+}
+enum CartStatus {
+  ACTIF
+  CONVERTI
+  ABANDONNE
+}
+Cart "1" *-- "0..*" CartItem : items >
+Order "1" *-- "1..*" OrderLine : lines >
+Order "1" *-- "1" ShippingAddress : shippingAddress >
+Order "1" *-- "1..*" OrderStatusHistory : history >
+Order ..> OrderStatus
+Order ..> PaymentMethod
+Cart ..> CartStatus
+Cart ..> Order : converti en >
+note bottom of OutboxEvent
+  Écrit dans la même transaction que Order,
+  puis publié sur Kafka par un relais planifié
+  (Transactional Outbox).
+end note
+@enduml

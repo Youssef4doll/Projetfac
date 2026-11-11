@@ -1,0 +1,46 @@
+server:
+  port: 8080
+spring:
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowed-origins: "http://localhost:4200"
+            allowed-methods: [GET, POST, PUT, PATCH, DELETE, OPTIONS]
+            allowed-headers: "*"
+            allow-credentials: true
+      routes:
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/users/**
+        - id: catalog-service
+          uri: lb://catalog-service
+          predicates:
+            - Path=/api/catalog/**
+        - id: order-service
+          uri: lb://order-service
+          predicates:
+            - Path=/api/cart/**,/api/orders/**
+        - id: inventory-service
+          uri: lb://inventory-service
+          predicates:
+            # /internal/inventory/reservations n'est volontairement PAS routé
+            - Path=/api/inventory/stocks/**,/api/inventory/alerts/**,/api/inventory/movements/**
+        - id: return-service
+          uri: lb://return-service
+          predicates:
+            - Path=/api/returns/**
+        - id: ticketing-service
+          uri: lb://ticketing-service
+          predicates:
+            - Path=/api/tickets/**
+        - id: ticketing-websocket
+          uri: lb:ws://ticketing-service
+          predicates:
+            - Path=/ws/**
+        - id: fulfillment-service
+          uri: lb://fulfillment-service
+          predicates:
+            - Path=/api/fulfillment/**

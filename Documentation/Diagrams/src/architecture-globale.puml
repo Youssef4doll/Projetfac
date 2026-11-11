@@ -1,0 +1,78 @@
+@startuml architecture-globale
+title DropWear — Architecture globale (Docker Compose, réseau dropwear-net)
+skinparam shadowing false
+skinparam componentStyle rectangle
+skinparam ArrowFontSize 10
+skinparam defaultTextAlignment center
+skinparam nodesep 25
+skinparam ranksep 45
+
+actor "Client · Admin · Support\n· Fournisseur" as U
+component "Transporteur\n(simulateur)" as CAR #F5F5F5
+
+node "Hôte Docker — réseau dropwear-net" as DOCKER {
+
+  component "**Frontend**\nAngular 18 + Nginx\n:4200" as FE #E8EAF6
+
+  rectangle "Infrastructure Spring Cloud" as INFRA #FAFAFA {
+    component "**API Gateway**\nSpring Cloud Gateway\nOAuth2 Resource Server\n:8080" as GW #FFE0B2
+    component "**Eureka Server**\n(découverte)\n:8761" as EU #E0F2F1
+    component "**Config Server**\n(config native)\n:8888" as CS #E0F2F1
+  }
+
+  component "**Keycloak 26**\nrealm dropwear\n:8180" as KC #EDE7F6
+  database "keycloak-db\nPostgreSQL" as DBK
+
+  queue "**Apache Kafka** (KRaft)\n:9092\n11 topics + DLT" as KAFKA #FFF3E0
+
+  rectangle "Microservices métier (Spring Boot 3.4 · Java 21)" as MS #FCFCFC {
+    component "**user-service**\n(commun) :8081" as US #EDE7F6
+    component "**catalog-service**\n:8082" as CAT #E3F2FD
+    component "**order-service**\n:8083" as ORD #FFEBEE
+    component "**inventory-service**\n:8084" as INV #FFEBEE
+    component "**return-service**\n:8085" as RET #FFEBEE
+    component "**ticketing-service**\n:8086\nWebSocket/STOMP" as TCK #E8F5E9
+    component "**fulfillment-service**\n:8087" as FUL #FFF8E1
+  }
+
+  database "user_db\nPostgreSQL" as DBU
+  database "catalog_db\nMongoDB" as DBC
+  database "order_db\nPostgreSQL" as DBO
+  database "inventory_db\nPostgreSQL" as DBI
+  database "return_db\nMySQL" as DBR
+  database "ticketing_db\nMongoDB" as DBT
+  database "fulfillment_db\nPostgreSQL" as DBF
+}
+
+U --> FE : HTTPS
+FE --> KC : (1) OIDC Authorization Code + PKCE
+FE --> GW : (2) REST + Bearer JWT\nWebSocket /ws
+GW ..> KC : (3) JWKS
+GW --> MS : (4) routage lb://<service>
+CAR --> GW : (12) webhook suivi\n(JWT TRANSPORTEUR)
+
+INFRA -[hidden]-> MS
+MS ..> EU : (5) enregistrement\n+ découverte
+MS ..> CS : (6) configuration\nau démarrage
+GW ..> EU
+GW ..> CS
+
+ORD --> CAT : (7) S1 Feign
+ORD --> INV : (7) S2 Feign
+RET --> ORD : (7) S3
+RET --> INV : (7) S4
+TCK --> ORD : (7) S5
+TCK --> US : (7) S6
+US --> KC : (8) Admin API
+
+MS <..> KAFKA : (9) événements\npub / sub
+
+KC --> DBK
+US --> DBU : (10)
+CAT --> DBC : (10)
+ORD --> DBO : (10)
+INV --> DBI : (10)
+RET --> DBR : (10)
+TCK --> DBT : (10)
+FUL --> DBF : (10)
+@enduml

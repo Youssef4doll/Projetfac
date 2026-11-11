@@ -1,0 +1,58 @@
+@startuml classes-user-service
+!include _style.iuml
+title user-service (service commun) — PostgreSQL user_db
+
+class UserProfile <<Entity>> {
+  - id : UUID {= sub Keycloak}
+  - email : String {unique}
+  - firstName : String
+  - lastName : String
+  - phone : String
+  - role : Role
+  - status : UserStatus
+  - createdAt : Instant
+  - updatedAt : Instant
+}
+class Address <<Entity>> {
+  - id : UUID
+  - label : String
+  - fullName : String
+  - street : String
+  - city : String
+  - postalCode : String
+  - governorate : String
+  - country : String
+  - phone : String
+  - defaultAddress : boolean
+}
+class SupplierProfile <<Entity>> {
+  - id : UUID
+  - companyName : String
+  - taxId : String {unique}
+  - contactEmail : String
+  - contactPhone : String
+  - country : String
+  - shippingDelayDays : int
+  - active : boolean
+}
+enum Role {
+  CLIENT
+  ADMIN
+  SUPPORT
+  FOURNISSEUR
+}
+enum UserStatus {
+  ACTIF
+  SUSPENDU
+}
+UserProfile "1" *-- "0..*" Address : adresses >
+UserProfile "1" *-- "0..1" SupplierProfile : profil fournisseur >
+UserProfile ..> Role
+UserProfile ..> UserStatus
+note bottom of UserProfile
+  id = claim « sub » du JWT : identifiant commun
+  à toute la plateforme (customerId, authorId…).
+  Mots de passe et rôles faisant foi : Keycloak.
+  « role » = copie pour les requêtes d'administration.
+end note
+@enduml

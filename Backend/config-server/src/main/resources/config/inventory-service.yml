@@ -1,0 +1,14 @@
+server:
+  port: 8084
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5435/inventory_db}
+    username: ${DB_USER:dropwear}
+    password: ${DB_PASSWORD:dropwear}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update   # Validation 2 : remplacer par Flyway
+dropwear:
+  stock:
+    default-reorder-threshold: 5

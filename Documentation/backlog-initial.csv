@@ -1,0 +1,41 @@
+﻿ID;Tache;Label;Assigne;Sprint;Priorite;Points
+DW-01;Initialiser le dépôt, l'arborescence et le README;docs;Youssef;S0;M;2
+DW-02;Analyse fonctionnelle, user stories, cas d'utilisation;docs;Eya;S0;M;3
+DW-03;Découpage en contextes bornés et carte des contextes;docs;Yasser;S0;M;3
+DW-04;Diagramme d'architecture globale;docs;Med Houssaine;S0;M;2
+DW-05;Matrice des interactions et diagrammes de séquence;docs;Aziz;S0;M;3
+DW-06;Realm Keycloak : rôles, clients, export JSON;infra;Med Ben Lakhal;S0;M;3
+DW-07;Fiche et projet Spring Boot : catalog-service;catalog;Eya;S0;M;3
+DW-08;Fiche et projet Spring Boot : order-service;order;Youssef;S0;M;3
+DW-09;Fiche et projet Spring Boot : inventory-service;inventory;Yasser;S0;M;3
+DW-10;Fiche et projet Spring Boot : return-service;return;Aziz;S0;M;3
+DW-11;Fiche et projet Spring Boot : ticketing-service;ticketing;Med Houssaine;S0;M;3
+DW-12;Fiche et projet Spring Boot : fulfillment-service;fulfillment;Med Ben Lakhal;S0;M;3
+DW-13;Fiche et projet du service commun (répartition à 6);user;Tous;S0;M;5
+DW-14;Slides et répétition de la Validation 1;docs;Tous;S0;M;3
+DW-15;Config Server et configurations par service;infra;Yasser;S1;M;3
+DW-16;Eureka Server;infra;Med Houssaine;S1;M;1
+DW-17;API Gateway : routes, JWT, CORS, WebSocket;infra;Youssef;S1;M;5
+DW-18;Kafka (KRaft), topics, Kafka UI;infra;Aziz;S1;M;3
+DW-19;user-service : inscription via Keycloak Admin API;user;Aziz, Med Ben Lakhal;S1;M;5
+DW-20;user-service : profil /me et adresses;user;Youssef, Eya;S1;M;3
+DW-21;user-service : administration, fournisseurs, endpoint interne;user;Yasser, Med Houssaine;S1;M;3
+DW-22;Frontend : socle Angular et connexion Keycloak;front;Eya;S1;M;5
+DW-23;catalog : CRUD produits, variantes, images, filtres, E1;catalog;Eya;S2;M;8
+DW-24;order : panier et appel S1 vers catalog;order;Youssef;S2;M;5
+DW-25;inventory : stocks, réservations, job d'expiration;inventory;Yasser;S2;M;8
+DW-26;return : RMA, éligibilité via S3;return;Aziz;S2;M;5
+DW-27;ticketing : tickets et WebSocket STOMP;ticketing;Med Houssaine;S2;M;8
+DW-28;fulfillment : consommation de E2, factures et paiements;fulfillment;Med Ben Lakhal;S2;M;5
+DW-29;order : validation (S2), outbox, E2 et E3;order;Youssef;S3;M;8
+DW-30;inventory : consommateurs E1, E2, E3, E10 et publication E4, E5;inventory;Yasser;S3;M;5
+DW-31;return : échange (S4), E9, E10, E11;return;Aziz;S3;M;5
+DW-32;ticketing : E8, E9, S5, S6 (mode dégradé);ticketing;Med Houssaine;S3;S;5
+DW-33;fulfillment : expéditions, webhook transporteur, E6, E7, E8, E11;fulfillment;Med Ben Lakhal;S3;M;8
+DW-34;catalog : consommateurs E4 et E5;catalog;Eya;S3;S;2
+DW-35;Résilience commune (Resilience4j) et tests de panne;infra;Aziz;S3;M;3
+DW-36;Frontend : écrans client, admin, support, fournisseur;front;Tous;S4;M;13
+DW-37;Docker Compose complet et profils;infra;Med Houssaine;S4;M;3
+DW-38;Collection Postman et scénario de démonstration;docs;Yasser;S4;S;3
+DW-39;Dossier technique final;docs;Eya + tous;S4;M;5
+DW-40;Répétition de la soutenance finale;docs;Tous;S4;M;2

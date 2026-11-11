@@ -1,0 +1,252 @@
+{
+  "realm": "dropwear",
+  "displayName": "DropWear",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "accessTokenLifespan": 300,
+  "ssoSessionIdleTimeout": 1800,
+  "roles": {
+    "realm": [
+      {
+        "name": "CLIENT",
+        "description": "Client de la boutique"
+      },
+      {
+        "name": "ADMIN",
+        "description": "Administrateur de la plateforme"
+      },
+      {
+        "name": "SUPPORT",
+        "description": "Agent du service client"
+      },
+      {
+        "name": "FOURNISSEUR",
+        "description": "Fournisseur partenaire (dropshipping)"
+      },
+      {
+        "name": "SERVICE",
+        "description": "Compte de service : appels /internal/** entre microservices"
+      },
+      {
+        "name": "TRANSPORTEUR",
+        "description": "Simulateur de transporteur (webhook de suivi)"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "dropwear-frontend",
+      "name": "DropWear Frontend (Angular)",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": [
+        "http://localhost:4200/*"
+      ],
+      "webOrigins": [
+        "http://localhost:4200"
+      ],
+      "protocol": "openid-connect",
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:4200/*"
+      }
+    },
+    {
+      "clientId": "user-service",
+      "name": "user-service",
+      "description": "S7 : API d'administration Keycloak (inscription, rôles)",
+      "enabled": true,
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "user-service-secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "order-service",
+      "name": "order-service",
+      "description": "S1, S2 : appels internes vers catalog et inventory",
+      "enabled": true,
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "order-service-secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "return-service",
+      "name": "return-service",
+      "description": "S3, S4 : appels internes vers order et inventory",
+      "enabled": true,
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "return-service-secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "ticketing-service",
+      "name": "ticketing-service",
+      "description": "S5, S6 : appels internes vers order et user",
+      "enabled": true,
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "ticketing-service-secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "carrier-simulator",
+      "name": "carrier-simulator",
+      "description": "Transporteur simulé : POST /api/fulfillment/carrier-events",
+      "enabled": true,
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "carrier-simulator-secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "protocol": "openid-connect"
+    }
+  ],
+  "users": [
+    {
+      "username": "client1",
+      "email": "client1@example.com",
+      "firstName": "Client",
+      "lastName": "Test",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Passw0rd!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "CLIENT"
+      ]
+    },
+    {
+      "username": "admin1",
+      "email": "admin1@example.com",
+      "firstName": "Admin",
+      "lastName": "Test",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Passw0rd!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "ADMIN"
+      ]
+    },
+    {
+      "username": "support1",
+      "email": "support1@example.com",
+      "firstName": "Support",
+      "lastName": "Test",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Passw0rd!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "SUPPORT"
+      ]
+    },
+    {
+      "username": "fournisseur1",
+      "email": "fournisseur1@example.com",
+      "firstName": "Fournisseur",
+      "lastName": "Test",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Passw0rd!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "FOURNISSEUR"
+      ]
+    },
+    {
+      "username": "service-account-order-service",
+      "enabled": true,
+      "serviceAccountClientId": "order-service",
+      "realmRoles": [
+        "SERVICE"
+      ]
+    },
+    {
+      "username": "service-account-return-service",
+      "enabled": true,
+      "serviceAccountClientId": "return-service",
+      "realmRoles": [
+        "SERVICE"
+      ]
+    },
+    {
+      "username": "service-account-ticketing-service",
+      "enabled": true,
+      "serviceAccountClientId": "ticketing-service",
+      "realmRoles": [
+        "SERVICE"
+      ]
+    },
+    {
+      "username": "service-account-user-service",
+      "enabled": true,
+      "serviceAccountClientId": "user-service",
+      "realmRoles": [
+        "SERVICE"
+      ],
+      "clientRoles": {
+        "realm-management": [
+          "manage-users",
+          "view-users",
+          "query-users"
+        ]
+      }
+    },
+    {
+      "username": "service-account-carrier-simulator",
+      "enabled": true,
+      "serviceAccountClientId": "carrier-simulator",
+      "realmRoles": [
+        "TRANSPORTEUR"
+      ]
+    }
+  ]
+}

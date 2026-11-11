@@ -1,0 +1,93 @@
+@startuml classes-inventory-service
+!include _style.iuml
+title inventory-service — PostgreSQL inventory_db
+
+class StockItem <<Entity>> {
+  - id : UUID
+  - sku : String {unique}
+  - productId : String
+  - supplierId : UUID
+  - quantityOnHand : int
+  - quantityReserved : int
+  - reorderThreshold : int
+  - updatedAt : Instant
+  - version : long
+  + available() : int
+}
+class StockReservation <<Entity>> {
+  - id : UUID
+  - referenceType : ReservationType
+  - referenceId : String
+  - idempotencyKey : String {unique}
+  - status : ReservationStatus
+  - expiresAt : Instant
+  - createdAt : Instant
+  - confirmedAt : Instant [0..1]
+}
+class ReservationLine <<Entity>> {
+  - id : UUID
+  - sku : String
+  - quantity : int
+}
+class StockMovement <<Entity>> {
+  - id : UUID
+  - sku : String
+  - type : MovementType
+  - quantity : int
+  - referenceId : String
+  - createdAt : Instant
+}
+class RestockAlert <<Entity>> {
+  - id : UUID
+  - sku : String
+  - supplierId : UUID
+  - availableAtAlert : int
+  - threshold : int
+  - status : AlertStatus
+  - createdAt : Instant
+  - resolvedAt : Instant [0..1]
+}
+class ProcessedEvent <<Entity>> {
+  - eventId : UUID
+  - topic : String
+  - processedAt : Instant
+}
+enum ReservationType {
+  COMMANDE
+  ECHANGE
+}
+enum ReservationStatus {
+  ACTIVE
+  CONFIRMEE
+  LIBEREE
+  EXPIREE
+}
+enum MovementType {
+  ENTREE
+  SORTIE
+  RESERVATION
+  LIBERATION
+  RETOUR
+  AJUSTEMENT
+}
+enum AlertStatus {
+  OUVERTE
+  TRAITEE
+}
+StockReservation "1" *-- "1..*" ReservationLine : lines >
+ReservationLine "*" ..> "1" StockItem : sku >
+StockMovement "*" ..> "1" StockItem : sku >
+RestockAlert "*" ..> "1" StockItem : sku >
+StockReservation ..> ReservationType
+StockReservation ..> ReservationStatus
+StockMovement ..> MovementType
+RestockAlert ..> AlertStatus
+note right of StockItem
+  available() = quantityOnHand - quantityReserved
+  @Version : verrou optimiste (réservations concurrentes)
+end note
+note bottom of ProcessedEvent
+  Idempotence des consommateurs Kafka
+  (un événement rejoué n'est traité qu'une fois).
+end note
+@enduml

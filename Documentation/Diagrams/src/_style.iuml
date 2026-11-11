@@ -1,0 +1,9 @@
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor #FAFBFD
+  BorderColor #4A6FA5
+  ArrowColor #2E3A4F
+}
+skinparam stereotypeCBackgroundColor #DDE7F5
+hide empty methods

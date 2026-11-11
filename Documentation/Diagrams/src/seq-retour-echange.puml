@@ -1,0 +1,63 @@
+@startuml seq-retour-echange
+title Demande d'échange de taille — éligibilité (sync) puis saga retour (async)
+skinparam shadowing false
+skinparam sequenceMessageAlign left
+skinparam ParticipantPadding 6
+autonumber
+
+actor Client
+participant "API Gateway" as GW
+participant "return-service" as RS
+database "return_db\nMySQL" as RDB
+participant "order-service" as OS
+participant "inventory-service" as IS
+actor "Support / Admin" as SUP
+actor "Fournisseur" as FOU
+queue "Kafka" as K
+participant "ticketing-service" as TS
+participant "fulfillment-service" as FS
+
+== 1. Demande et éligibilité ==
+Client -> GW : POST /api/returns\n{orderId, type: ECHANGE, reason: TAILLE_INCORRECTE,\n items[{sku: "TSH-OVS-NOIR-M", quantity: 1, replacementSku: "TSH-OVS-NOIR-L"}]}
+GW -> RS : lb://return-service
+RS -> OS : [OpenFeign] GET /internal/orders/{orderId}
+alt order-service indisponible (fallback)
+  RS --> GW : 503 « Vérification impossible, réessayez »
+else Commande trouvée
+  OS --> RS : 200 {customerId, status: LIVREE, deliveredAt, lines[]}
+  RS -> RS : Contrôles : propriétaire = sub du JWT,\nstatut LIVREE, aujourd'hui <= deliveredAt + 14 j,\narticle présent et non déjà retourné
+  alt Non éligible
+    RS --> GW : 422 « Délai de 14 jours dépassé »
+  else Éligible (type ECHANGE)
+    RS -> IS : [OpenFeign] POST /internal/inventory/reservations\nIdempotency-Key: {rmaNumber}\n{referenceType: ECHANGE, lines[{TSH-OVS-NOIR-L, 1}], ttlMinutes: 20160}
+    alt Taille de remplacement disponible
+      IS --> RS : 201 {reservationId}
+      RS -> RDB : INSERT ReturnRequest (DEMANDEE)\n+ ReturnItem(replacementReservationId)
+      RS --> GW : 201 {rmaNumber: "RMA-2026-000045", status: DEMANDEE}
+    else 409 indisponible ou inventory en panne (fallback)
+      RS --> GW : 409 « Taille indisponible : remboursement proposé »
+    end
+  end
+end
+
+== 2. Décision ==
+SUP -> GW : POST /api/returns/{rmaId}/approve
+GW -> RS
+RS -> RDB : APPROUVEE + ReturnLabel(trackingNumber, labelUrl)
+RS -> K : RetourApprouveEvent (retour.approuve)
+K -> TS : Si ticketId : message système\n« étiquette disponible » + ticket RESOLU
+Client -> GW : GET /api/returns/{rmaId}/label
+
+== 3. Réception du colis retourné ==
+FOU -> GW : POST /api/returns/{rmaId}/receive\n{items[{sku, condition: REVENDABLE}]}
+GW -> RS
+RS -> RDB : COLIS_RECU
+RS -> K : RetourRecuEvent (retour.recu)
+par
+  K -> IS : Remet en stock l'article REVENDABLE\n+ confirme la réservation de remplacement
+else
+  K -> FS : Crée la Shipment REMPLACEMENT_ECHANGE\n(RETOUR simple : Refund + avoir)
+end
+FS -> K : RetourFinaliseEvent (retour.finalise)\nà l'expédition du remplacement
+K -> RS : CLOTUREE, outcome = REMPLACEMENT_EXPEDIE
+@enduml

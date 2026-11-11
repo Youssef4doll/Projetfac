@@ -1,0 +1,79 @@
+@startuml classes-return-service
+!include _style.iuml
+title return-service (Exchange & Return) — MySQL return_db
+
+class ReturnRequest <<Entity>> {
+  - id : UUID
+  - rmaNumber : String {unique}
+  - orderId : UUID
+  - customerId : String
+  - type : ReturnType
+  - status : ReturnStatus
+  - reason : ReturnReason
+  - comment : String
+  - orderDeliveredAt : Instant
+  - eligibilityDeadline : Instant
+  - ticketId : String [0..1]
+  - outcome : ReturnOutcome [0..1]
+  - decidedBy : String
+  - decisionComment : String
+  - createdAt : Instant
+  - updatedAt : Instant
+}
+class ReturnItem <<Entity>> {
+  - id : UUID
+  - sku : String
+  - productName : String
+  - quantity : int
+  - unitPrice : BigDecimal
+  - condition : ItemCondition [0..1]
+  - replacementSku : String [0..1]
+  - replacementReservationId : UUID [0..1]
+}
+class ReturnLabel <<Entity>> {
+  - id : UUID
+  - carrier : String
+  - trackingNumber : String
+  - labelUrl : String
+  - issuedAt : Instant
+  - expiresAt : Instant
+}
+enum ReturnType {
+  RETOUR
+  ECHANGE
+}
+enum ReturnStatus {
+  DEMANDEE
+  APPROUVEE
+  REFUSEE
+  COLIS_RECU
+  CLOTUREE
+}
+enum ReturnReason {
+  TAILLE_INCORRECTE
+  COUPE_NE_CONVIENT_PAS
+  ARTICLE_DEFECTUEUX
+  COLIS_ENDOMMAGE
+  NE_CORRESPOND_PAS
+  CHANGEMENT_AVIS
+}
+enum ItemCondition {
+  REVENDABLE
+  ENDOMMAGE
+}
+enum ReturnOutcome {
+  REMBOURSE
+  REMPLACEMENT_EXPEDIE
+}
+ReturnRequest "1" *-- "1..*" ReturnItem : items >
+ReturnRequest "1" *-- "0..1" ReturnLabel : label >
+ReturnRequest ..> ReturnType
+ReturnRequest ..> ReturnStatus
+ReturnRequest ..> ReturnReason
+ReturnRequest ..> ReturnOutcome
+ReturnItem ..> ItemCondition
+note right of ReturnRequest
+  eligibilityDeadline = orderDeliveredAt + 14 jours
+  (date de livraison obtenue via S3, figée à la création)
+end note
+@enduml

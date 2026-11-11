@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Agrégateur : compile tous les projets d'un coup (mvn -f Backend/pom.xml package).
+     Chaque microservice reste un projet Spring Boot AUTONOME (ce pom n'est le parent d'aucun module). -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.dropwear</groupId>
+    <artifactId>dropwear-backend</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>dropwear-backend</name>
+
+    <modules>
+        <module>config-server</module>
+        <module>eureka-server</module>
+        <module>api-gateway</module>
+        <module>user-service</module>
+        <module>catalog-service</module>
+        <module>order-service</module>
+        <module>inventory-service</module>
+        <module>return-service</module>
+        <module>ticketing-service</module>
+        <module>fulfillment-service</module>
+    </modules>
+</project>

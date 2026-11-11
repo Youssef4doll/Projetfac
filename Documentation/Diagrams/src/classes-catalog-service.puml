@@ -1,0 +1,87 @@
+@startuml classes-catalog-service
+!include _style.iuml
+title catalog-service — MongoDB catalog_db
+
+class Product <<Document products>> {
+  - id : String
+  - name : String
+  - slug : String {unique}
+  - description : String
+  - brand : String
+  - categoryId : String
+  - supplierId : UUID
+  - basePrice : BigDecimal
+  - currency : String
+  - gender : Gender
+  - material : String
+  - tags : List<String>
+  - status : ProductStatus
+  - createdAt : Instant
+  - updatedAt : Instant
+}
+class Variant <<Embedded>> {
+  - sku : String {unique}
+  - size : Size
+  - fit : Fit
+  - color : String
+  - colorHex : String
+  - priceOverride : BigDecimal [0..1]
+  - supplierSku : String
+  - lowStock : boolean
+  - outOfStock : boolean
+  - active : boolean
+}
+class ProductImage <<Embedded>> {
+  - imageId : String
+  - url : String
+  - altText : String
+  - color : String
+  - position : int
+  - main : boolean
+}
+class Category <<Document categories>> {
+  - id : String
+  - name : String
+  - slug : String {unique}
+  - parentId : String [0..1]
+  - description : String
+  - active : boolean
+}
+enum Size {
+  XS
+  S
+  M
+  L
+  XL
+  XXL
+}
+enum Fit {
+  REGULAR
+  SLIM
+  BOXY
+  OVERSIZE
+}
+enum Gender {
+  HOMME
+  FEMME
+  UNISEXE
+}
+enum ProductStatus {
+  BROUILLON
+  PUBLIE
+  ARCHIVE
+}
+Product "1" *-- "1..*" Variant : variants >
+Product "1" *-- "0..*" ProductImage : images >
+Product "*" --> "1" Category : categoryId >
+Category "*" --> "0..1" Category : parentId >
+Variant ..> Size
+Variant ..> Fit
+Product ..> Gender
+Product ..> ProductStatus
+note right of Variant
+  lowStock / outOfStock : vue locale
+  alimentée par StockFaibleEvent
+  et StockReapprovisionneEvent.
+end note
+@enduml

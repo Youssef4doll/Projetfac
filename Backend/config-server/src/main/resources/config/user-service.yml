@@ -1,0 +1,35 @@
+server:
+  port: 8081
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/user_db}
+    username: ${DB_USER:dropwear}
+    password: ${DB_PASSWORD:dropwear}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update   # Validation 2 : remplacer par Flyway
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            provider: keycloak
+            client-id: user-service
+            client-secret: ${CLIENT_SECRET:user-service-secret}
+            authorization-grant-type: client_credentials
+        provider:
+          keycloak:
+            token-uri: ${KEYCLOAK_TOKEN_URI:http://localhost:8180/realms/dropwear/protocol/openid-connect/token}
+# S7 : pas de retry (création non idempotente), circuit breaker seul.
+resilience4j:
+  circuitbreaker:
+    instances:
+      keycloak-admin:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+dropwear:
+  keycloak:
+    admin-url: ${KEYCLOAK_ADMIN_URL:http://localhost:8180/admin/realms/dropwear}

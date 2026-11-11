@@ -1,0 +1,52 @@
+@startuml seq-validation-commande
+title Validation de commande — synchrone (OpenFeign) puis asynchrone (Kafka)
+skinparam shadowing false
+skinparam sequenceMessageAlign left
+skinparam ParticipantPadding 8
+autonumber
+
+actor Client
+participant "Frontend\nAngular" as FE
+participant "API Gateway" as GW
+participant "order-service" as OS
+database "order_db\nPostgreSQL" as ODB
+participant "inventory-service" as IS
+database "inventory_db\nPostgreSQL" as IDB
+queue "Kafka\ncommande.validee" as K
+participant "fulfillment-service" as FS
+database "fulfillment_db\nPostgreSQL" as FDB
+
+Client -> FE : « Confirmer la commande »\n(paiement à la livraison)
+FE -> GW : POST /api/orders/{orderId}/validate\nAuthorization: Bearer <JWT>
+GW -> GW : Vérifie la signature du JWT\n(clés JWKS Keycloak en cache)
+GW -> OS : POST /api/orders/{orderId}/validate\n(lb://order-service via Eureka)
+OS -> ODB : Charge la commande (EN_ATTENTE)\net vérifie le propriétaire (sub)
+OS -> IS : [OpenFeign + Resilience4j]\nPOST /internal/inventory/reservations\nIdempotency-Key: {orderId}\n{referenceType: COMMANDE, lines[], ttlMinutes: 30}
+
+alt Stock disponible
+  IS -> IDB : Transaction : verrou (@Version)\nquantityReserved += q\nINSERT réservation ACTIVE (expiresAt = +30 min)
+  IS --> OS : 201 {reservationId, status: ACTIVE, expiresAt}
+  OS -> ODB : Transaction : statut CONFIRMEE + reservationId\n+ INSERT outbox(CommandeValideeEvent)
+  OS --> GW : 200 {orderId, status: CONFIRMEE}
+  GW --> FE : 200
+  FE --> Client : « Commande confirmée »
+  ... asynchrone : le client n'attend plus ...
+  OS -> K : Relais outbox : publie CommandeValideeEvent\n(clé = orderId)
+  par Consommateurs indépendants (groupes Kafka distincts)
+    K -> IS : CommandeValideeEvent (groupe inventory-service)
+    IS -> IDB : Réservation CONFIRMEE\nquantityOnHand -= q ; quantityReserved -= q\nmouvement SORTIE (+ StockFaibleEvent si seuil)
+  else
+    K -> FS : CommandeValideeEvent (groupe fulfillment-service)
+    FS -> FDB : Facture EMISE + paiement EN_ATTENTE (COD)\n+ une Shipment par fournisseur + bordereau
+  end
+else Stock insuffisant
+  IS --> OS : 409 {unavailableSkus: ["TSH-OVS-NOIR-M"]}
+  OS --> GW : 409 « Article(s) indisponible(s) »
+  GW --> FE : 409
+  FE --> Client : Propose une autre taille
+else inventory-service indisponible (timeout / circuit ouvert)
+  OS -> OS : Resilience4j : 2 retries puis fallback\n(circuit ouvert : échec immédiat)
+  OS --> GW : 503 « Réessayez dans quelques instants »\n(commande reste EN_ATTENTE)
+  GW --> FE : 503
+end
+@enduml

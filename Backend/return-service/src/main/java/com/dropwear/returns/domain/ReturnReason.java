@@ -1,0 +1,5 @@
+package com.dropwear.returns.domain;
+
+public enum ReturnReason {
+    TAILLE_INCORRECTE, COUPE_NE_CONVIENT_PAS, ARTICLE_DEFECTUEUX, COLIS_ENDOMMAGE, NE_CORRESPOND_PAS, CHANGEMENT_AVIS
+}

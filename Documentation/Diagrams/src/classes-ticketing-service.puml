@@ -1,0 +1,85 @@
+@startuml classes-ticketing-service
+!include _style.iuml
+title ticketing-service — MongoDB ticketing_db
+
+class Ticket <<Document tickets>> {
+  - id : String
+  - ticketNumber : String {unique}
+  - customerId : String
+  - customerName : String
+  - customerEmail : String
+  - orderId : String [0..1]
+  - rmaId : String [0..1]
+  - category : TicketCategory
+  - subject : String
+  - priority : Priority
+  - status : TicketStatus
+  - source : TicketSource
+  - orderVerified : boolean
+  - assignedAgentId : String [0..1]
+  - slaDueAt : Instant
+  - createdAt : Instant
+  - updatedAt : Instant
+  - resolvedAt : Instant [0..1]
+  - resolutionNote : String
+}
+class Message <<Embedded>> {
+  - messageId : String
+  - authorId : String
+  - authorRole : AuthorRole
+  - content : String
+  - sentAt : Instant
+  - readAt : Instant [0..1]
+}
+class Attachment <<Embedded>> {
+  - fileName : String
+  - url : String
+  - contentType : String
+  - sizeBytes : long
+}
+class Assignment <<Embedded>> {
+  - agentId : String
+  - assignedBy : String
+  - assignedAt : Instant
+}
+enum TicketStatus {
+  OUVERT
+  EN_COURS
+  RESOLU
+}
+enum TicketCategory {
+  COLIS_ENDOMMAGE
+  RETARD_LIVRAISON
+  ARTICLE_MANQUANT
+  PAIEMENT
+  RETOUR_ECHANGE
+  AUTRE
+}
+enum Priority {
+  BASSE
+  NORMALE
+  HAUTE
+  URGENTE
+}
+enum TicketSource {
+  CLIENT
+  SYSTEME
+}
+enum AuthorRole {
+  CLIENT
+  SUPPORT
+  SYSTEME
+}
+Ticket "1" *-- "0..*" Message : messages >
+Message "1" *-- "0..*" Attachment : attachments >
+Ticket "1" *-- "0..*" Assignment : assignments >
+Ticket ..> TicketStatus
+Ticket ..> TicketCategory
+Ticket ..> Priority
+Ticket ..> TicketSource
+Message ..> AuthorRole
+note right of Message
+  Diffusé en temps réel via WebSocket/STOMP :
+  /topic/tickets/{ticketId}
+end note
+@enduml

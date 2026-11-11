@@ -1,0 +1,17 @@
+server:
+  port: 8087
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5436/fulfillment_db}
+    username: ${DB_USER:dropwear}
+    password: ${DB_PASSWORD:dropwear}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update   # Validation 2 : remplacer par Flyway
+dropwear:
+  billing:
+    tax-rate: 0.19
+    currency: TND
+  delay-detection:
+    cron: "0 0 * * * *"

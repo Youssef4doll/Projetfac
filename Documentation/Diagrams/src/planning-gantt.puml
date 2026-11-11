@@ -1,0 +1,45 @@
+@startgantt planning-gantt
+title DropWear — Planning prévisionnel (dates indicatives, à caler sur le calendrier officiel)
+language fr
+printscale weekly zoom 3
+saturday are closed
+sunday are closed
+Project starts 2026-11-09
+
+-- Sprint 0 : conception --
+[Analyse fonctionnelle et cas d'utilisation] as [A1] requires 4 days
+[Découpage, contextes, matrice] as [A2] requires 4 days
+[A2] starts at [A1]'s start
+[Fiches microservices et diagrammes] as [A3] requires 4 days
+[A3] starts at [A1]'s end
+[Projets Spring Boot créés, dépôt Git] as [A4] requires 3 days
+[A4] starts at [A3]'s start
+[Slides et répétition] as [A5] requires 2 days
+[A5] starts at [A3]'s end
+[Validation 1] happens at [A5]'s end
+
+-- Sprint 1 : infrastructure et service commun --
+[Config, Eureka, Gateway, Kafka, Keycloak] as [B1] requires 10 days
+[B1] starts at [A5]'s end
+[user-service (6 membres)] as [B2] requires 10 days
+[B2] starts at [A5]'s end
+[Socle Angular et connexion] as [B3] requires 10 days
+[B3] starts at [A5]'s end
+
+-- Sprint 2 : services individuels --
+[CRUD et API des 6 services] as [C1] requires 10 days
+[C1] starts at [B1]'s end
+
+-- Sprint 3 : interactions --
+[Feign S1-S6 et Resilience4j] as [D1] requires 10 days
+[D1] starts at [C1]'s end
+[Événements E1-E11, outbox, DLT] as [D2] requires 10 days
+[D2] starts at [C1]'s end
+
+-- Sprint 4 : intégration et rendu --
+[Écrans par acteur et Docker Compose complet] as [E1] requires 8 days
+[E1] starts at [D1]'s end
+[Dossier technique final et répétition] as [E2] requires 2 days
+[E2] starts at [E1]'s end
+[Soutenance finale] happens at [E2]'s end
+@endgantt

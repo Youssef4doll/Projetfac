@@ -1,0 +1,66 @@
+@startuml uc-back-office
+title DropWear — Cas d'utilisation (2/2) : back-office
+left to right direction
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam usecase {
+  BackgroundColor #F7F9FC
+  BorderColor #4A6FA5
+}
+
+actor "Admin" as A
+actor "Support" as S
+
+rectangle "Plateforme DropWear" {
+  package "Identité (user-service)" {
+    usecase "Gérer utilisateurs, rôles\net profils fournisseurs" as UC03
+  }
+  package "Catalogue (catalog-service)" {
+    usecase "Gérer produits, variantes,\nimages et catégories" as UC05
+  }
+  package "Commande (order-service)" {
+    usecase "Consulter toutes les commandes" as UC09
+  }
+  package "Stock (inventory-service)" {
+    usecase "Mettre à jour le stock de ses SKU" as UC11
+    usecase "Consulter les alertes\nde réapprovisionnement" as UC12
+    usecase "Définir les seuils" as UC12b
+  }
+  package "Retours & échanges (return-service)" {
+    usecase "Approuver / refuser une RMA" as UC15
+    usecase "Réceptionner un retour" as UC16
+  }
+  package "Support (ticketing-service)" {
+    usecase "Assigner et traiter un ticket\n(OUVERT → EN_COURS → RESOLU)" as UC19
+    usecase "Répondre en temps réel" as UC18
+  }
+  package "Logistique & facturation (fulfillment-service)" {
+    usecase "Préparer et expédier un colis\n(bordereau, n° de suivi)" as UC20
+    usecase "Notifier un événement de suivi\n(livré, retard, COD encaissé)" as UC21
+    usecase "Consulter factures, paiements\net remboursements" as UC22
+  }
+}
+
+actor "Fournisseur" as F
+actor "Transporteur\n<<système externe>>" as T
+
+A --> UC03
+A --> UC05
+A --> UC09
+A --> UC12
+A --> UC12b
+A --> UC15
+A --> UC19
+A --> UC22
+
+S --> UC09
+S --> UC15
+S --> UC18
+S --> UC19
+
+UC11 <-- F
+UC12 <-- F
+UC16 <-- F
+UC20 <-- F
+UC21 <-- T
+@enduml
